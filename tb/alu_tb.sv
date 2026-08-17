@@ -31,6 +31,30 @@ module alu_tb;
         #10;
         $display("SUB: %d - %d = %d", a, b, result);
 
+        //AND
+        a = 15;
+        b = 19;
+        alu_control = 4'b0010;
+
+        #10;
+        $display("AND: %d AND %d = %d", a, b, result);
+
+        //OR
+        a = 15;
+        b = 19;
+        alu_control = 4'b0011;
+
+        #10;
+        $display("OR: %d OR %d = %d", a, b, result);
+
+        //XOR
+        a = 15;
+        b = 19;
+        alu_control = 4'b0100;
+
+        #10;
+        $display("XOR: %d XOR %d = %d", a, b, result);
+
         $finish;
 
     end

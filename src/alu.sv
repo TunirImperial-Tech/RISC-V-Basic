@@ -8,6 +8,9 @@ module alu(
 
 localparam logic [3:0] ALU_ADD = 4'b0000;
 localparam logic [3:0] ALU_SUB = 4'b0001; 
+localparam logic [3:0] ALU_AND = 4'b0010;
+localparam logic [3:0] ALU_OR  = 4'b0011;
+localparam logic [3:0] ALU_XOR = 4'b0100;
 
 always_comb begin
     case(alu_control)
@@ -16,6 +19,15 @@ always_comb begin
         end 
         ALU_SUB: begin
             result = a - b;
+        end
+        ALU_AND: begin
+            result = a & b;
+        end
+        ALU_OR: begin
+            result = a | b;
+        end
+        ALU_XOR: begin
+            result = a ^ b;
         end
         default: begin
             result = 32'b0;
