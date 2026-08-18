@@ -7,7 +7,10 @@ module cpu(
     logic [31:0] pc; 
     logic [31:0] next_pc; 
 
-    assign next_pc = pc + 32'd4; 
+    always_comb begin
+        if (branch_taken) next_pc = branch_target;
+        else next_pc = pc + 32'd4; 
+    end
 
     program_counter pc_unit(
         .clk(clk),
@@ -24,6 +27,26 @@ module cpu(
         .instruction(instruction)
     );
 
+    //Data memory
+    logic [31:0] memory_read_data; 
+    logic [31:0] write_back_data; 
+
+    dmem dmem_unit(
+        .clk(clk), 
+        .mem_read(mem_read), 
+        .mem_write(mem_write), 
+        .address(alu_result), 
+        .write_data(read_data_2), 
+        .read_data(memory_read_data)
+    ); 
+
+    always_comb begin
+        if (mem_to_reg)
+            write_back_data = memory_read_data; 
+        else
+            write_back_data = alu_result; 
+    end
+
     //Control unit
     logic [3:0] alu_control; 
 
@@ -34,6 +57,28 @@ module cpu(
     logic mem_to_reg; 
     logic branch; 
     logic jump; 
+
+    logic [31:0] branch_target; 
+    logic branch_taken; 
+
+    assign branch_target = pc + immediate; 
+
+    logic [2:0] funct3;
+    assign funct3 = instruction[14:12];
+
+    always_comb begin
+        branch_taken = 1'b0; 
+
+        if (branch) begin
+            case (funct3)
+                3'b000: branch_taken = (alu_result == 32'd0); 
+                3'b001: branch_taken = (alu_result != 32'd0); 
+                3'b100: branch_taken = (alu_result == 32'd1); 
+                3'b101: branch_taken = (alu_result == 32'd0); 
+                default: branch_taken = 1'b0; 
+            endcase
+        end
+    end
 
 
     control_unit decoder(
@@ -66,7 +111,7 @@ module cpu(
         .rs1(rs1), 
         .rs2(rs2),
         .rd(rd), 
-        .write_data(alu_result),
+        .write_data(write_back_data),
         .read_data_1(read_data_1), 
         .read_data_2(read_data_2)
     );

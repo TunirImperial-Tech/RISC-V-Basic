@@ -12,6 +12,8 @@ localparam logic [3:0] ALU_AND = 4'b0010;
 localparam logic [3:0] ALU_OR  = 4'b0011;
 localparam logic [3:0] ALU_XOR = 4'b0100;
 
+localparam logic [3:0] ALU_SLT = 4'b0101;  
+
 always_comb begin
     case(alu_control)
         ALU_ADD: begin
@@ -28,6 +30,9 @@ always_comb begin
         end
         ALU_XOR: begin
             result = a ^ b;
+        end
+        ALU_SLT: begin
+            result = ($signed(a) < $signed(b)) ? 32'd1 : 32'd0; 
         end
         default: begin
             result = 32'b0;

@@ -17,9 +17,13 @@ localparam logic [3:0] ALU_SUB = 4'b0001;
 localparam logic [3:0] ALU_AND = 4'b0010;
 localparam logic [3:0] ALU_OR  = 4'b0011;
 localparam logic [3:0] ALU_XOR = 4'b0100;
+localparam logic [3:0] ALU_SLT = 4'b0101; 
 
 localparam logic [6:0] R_TYPE = 7'b0110011;
 localparam logic [6:0] I_TYPE = 7'b0010011;
+localparam logic [6:0] LOAD   = 7'b0000011;
+localparam logic [6:0] STORE  = 7'b0100011;
+localparam logic [6:0] BRANCH = 7'b1100011; 
 
 logic [6:0] opcode; 
 logic [2:0] funct3;
@@ -75,6 +79,37 @@ always_comb begin
             endcase
             reg_write = 1'b1; 
             alu_src = 1'b1; 
+        end
+
+        LOAD : begin
+            if (funct3 == 3'b010) begin
+                alu_control = ALU_ADD;
+                reg_write   = 1'b1;
+                alu_src     = 1'b1;
+                mem_read    = 1'b1;
+                mem_to_reg  = 1'b1;
+            end
+        end
+
+        STORE: begin
+            if (funct3 == 3'b010) begin
+                alu_control = ALU_ADD;
+                alu_src     = 1'b1;
+                mem_write   = 1'b1;
+            end
+        end
+
+        BRANCH: begin
+            branch = 1'b1; 
+            reg_write = 1'b0; 
+            alu_src = 1'b0; 
+            if (funct3 == 3'b000) alu_control = ALU_SUB; //BEQ
+
+            if (funct3 == 3'b001) alu_control = ALU_SUB; //BNE
+
+            if (funct3 == 3'b100) alu_control = ALU_SLT; //BLT
+
+            if (funct3 == 3'b101) alu_control = ALU_SLT; //BGE
         end
     endcase
 end

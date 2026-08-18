@@ -3,17 +3,28 @@ module cpu_tb;
     logic clk;
     logic reset;
 
+    //==================================================
+    // CPU
+    //==================================================
+
     cpu uut (
         .clk(clk),
         .reset(reset)
     );
 
-    // 10 time-unit clock
+    //==================================================
+    // Clock
+    //==================================================
+
     always #5 clk = ~clk;
+
+    //==================================================
+    // Test
+    //==================================================
 
     initial begin
 
-        clk = 0;
+        clk   = 0;
         reset = 1;
 
         // Reset CPU
@@ -22,84 +33,84 @@ module cpu_tb;
         // Start CPU
         reset = 0;
 
-        // Let program execute
-        #100;
+        // Allow program.hex to finish
+        #200;
 
-        // Check results
-        $display("");
-        $display("========== CPU TEST RESULTS ==========");
-
-        $display("x1 = %0d", uut.regfile_unit.registers[1]);
-        $display("x2 = %0d", uut.regfile_unit.registers[2]);
-        $display("x3 = %0d", uut.regfile_unit.registers[3]);
-        $display("x4 = %0d", uut.regfile_unit.registers[4]);
-        $display("x5 = %0d", uut.regfile_unit.registers[5]);
-        $display("x6 = %0d", uut.regfile_unit.registers[6]);
-        $display("x7 = %0d", uut.regfile_unit.registers[7]);
+        //==================================================
+        // Results
+        //==================================================
 
         $display("");
-
-        // Check expected values
-
-        if (uut.regfile_unit.registers[1] == 10)
-            $display("PASS: x1 = 10");
-        else
-            $display("FAIL: x1 expected 10");
-
-        if (uut.regfile_unit.registers[2] == 20)
-            $display("PASS: x2 = 20");
-        else
-            $display("FAIL: x2 expected 20");
-
-        if (uut.regfile_unit.registers[3] == 30)
-            $display("PASS: x3 = 30");
-        else
-            $display("FAIL: x3 expected 30");
-
-        if (uut.regfile_unit.registers[4] == 20)
-            $display("PASS: x4 = 20");
-        else
-            $display("FAIL: x4 expected 20");
-
-        if (uut.regfile_unit.registers[5] == 0)
-            $display("PASS: x5 = 0");
-        else
-            $display("FAIL: x5 expected 0");
-
-        if (uut.regfile_unit.registers[6] == 30)
-            $display("PASS: x6 = 30");
-        else
-            $display("FAIL: x6 expected 30");
-
-        if (uut.regfile_unit.registers[7] == 30)
-            $display("PASS: x7 = 30");
-        else
-            $display("FAIL: x7 expected 30");
+        $display("========================================");
+        $display("          PROGRAM TEST RESULTS          ");
+        $display("========================================");
 
         $display("");
-        $display("=======================================");
+        $display("Register values:");
+
+        $display("x1  = %0d", uut.regfile_unit.registers[1]);
+        $display("x2  = %0d", uut.regfile_unit.registers[2]);
+        $display("x3  = %0d", uut.regfile_unit.registers[3]);
+        $display("x4  = %0d", uut.regfile_unit.registers[4]);
+        $display("x5  = %0d", uut.regfile_unit.registers[5]);
+        $display("x6  = %0d", uut.regfile_unit.registers[6]);
+        $display("x7  = %0d", uut.regfile_unit.registers[7]);
+        $display("x8  = %0d", uut.regfile_unit.registers[8]);
+        $display("x9  = %0d", uut.regfile_unit.registers[9]);
+        $display("x10 = %0d", uut.regfile_unit.registers[10]);
+
+        //==================================================
+        // Expected Results
+        //==================================================
+
+        $display("");
+        $display("Expected:");
+
+        $display("x1  = 10");
+        $display("x2  = 12");
+        $display("x3  = 0");
+        $display("x4  = 100");
+        $display("x5  = 0");
+        $display("x6  = 301");
+        $display("x7  = 0");
+        $display("x8  = 303");
+        $display("x9  = 400");
+        $display("x10 = 0");
+
+        //==================================================
+        // Pass / Fail
+        //==================================================
+
+        $display("");
+        $display("Checks:");
+
+        if (uut.regfile_unit.registers[1]  == 10  &&
+            uut.regfile_unit.registers[2]  == 12  &&
+            uut.regfile_unit.registers[3]  == 0   &&
+            uut.regfile_unit.registers[4]  == 100 &&
+            uut.regfile_unit.registers[5]  == 0   &&
+            uut.regfile_unit.registers[6]  == 301 &&
+            uut.regfile_unit.registers[7]  == 0   &&
+            uut.regfile_unit.registers[8]  == 303 &&
+            uut.regfile_unit.registers[9]  == 400 &&
+            uut.regfile_unit.registers[10] == 401) begin
+
+            $display("");
+            $display("========================================");
+            $display("             PASS: CPU WORKS            ");
+            $display("========================================");
+
+        end
+        else begin
+
+            $display("");
+            $display("========================================");
+            $display("             FAIL: CPU ERROR            ");
+            $display("========================================");
+
+        end
 
         $finish;
-    end
-
-    // Show what the CPU is doing each cycle
-    always @(posedge clk) begin
-
-        #1;
-
-        $display(
-            "Time=%0t | PC=%0d | Instruction=%h | rs1=%d | rs2=%d | rd=%d | ALU=%0d | WriteData=%0d | RegWrite=%b | x1=%0d | x2=%0d",
-            $time,
-            uut.pc,
-            uut.instruction,
-            uut.rs1,
-            uut.rs2,
-            uut.rd,
-            uut.alu_result,
-            uut.reg_write,
-            uut.regfile_unit.registers[1],
-            uut.regfile_unit.registers[2]
-        );
 
     end
 
