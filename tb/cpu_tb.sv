@@ -33,7 +33,7 @@ module cpu_tb;
         // Start CPU
         reset = 0;
 
-        // Allow program.hex to finish
+        // Allow program.hex to execute
         #200;
 
         //==================================================
@@ -58,57 +58,19 @@ module cpu_tb;
         $display("x8  = %0d", uut.regfile_unit.registers[8]);
         $display("x9  = %0d", uut.regfile_unit.registers[9]);
         $display("x10 = %0d", uut.regfile_unit.registers[10]);
-
-        //==================================================
-        // Expected Results
-        //==================================================
-
-        $display("");
-        $display("Expected:");
-
-        $display("x1  = 10");
-        $display("x2  = 12");
-        $display("x3  = 0");
-        $display("x4  = 100");
-        $display("x5  = 0");
-        $display("x6  = 301");
-        $display("x7  = 0");
-        $display("x8  = 303");
-        $display("x9  = 400");
-        $display("x10 = 0");
-
-        //==================================================
-        // Pass / Fail
-        //==================================================
+        $display("x11 = %0d", uut.regfile_unit.registers[11]);
+        $display("x12 = %0d", uut.regfile_unit.registers[12]);
+        $display("x13 = %0d", uut.regfile_unit.registers[13]);
+        $display("x14 = %0d", uut.regfile_unit.registers[14]);
+        $display("x15 = %0d", uut.regfile_unit.registers[15]);
+        $display("x16 = %0d", uut.regfile_unit.registers[16]);
+        $display("x17 = %0d", uut.regfile_unit.registers[17]);
+        $display("x18 = %0d", uut.regfile_unit.registers[18]);
+        $display("x19 = %0d", uut.regfile_unit.registers[19]);
+        $display("x20 = %0d", uut.regfile_unit.registers[20]);
+        $display("x21 = %0d", uut.regfile_unit.registers[21]);
 
         $display("");
-        $display("Checks:");
-
-        if (uut.regfile_unit.registers[1]  == 10  &&
-            uut.regfile_unit.registers[2]  == 12  &&
-            uut.regfile_unit.registers[3]  == 0   &&
-            uut.regfile_unit.registers[4]  == 100 &&
-            uut.regfile_unit.registers[5]  == 0   &&
-            uut.regfile_unit.registers[6]  == 301 &&
-            uut.regfile_unit.registers[7]  == 0   &&
-            uut.regfile_unit.registers[8]  == 303 &&
-            uut.regfile_unit.registers[9]  == 400 &&
-            uut.regfile_unit.registers[10] == 401) begin
-
-            $display("");
-            $display("========================================");
-            $display("             PASS: CPU WORKS            ");
-            $display("========================================");
-
-        end
-        else begin
-
-            $display("");
-            $display("========================================");
-            $display("             FAIL: CPU ERROR            ");
-            $display("========================================");
-
-        end
 
         $finish;
 

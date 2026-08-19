@@ -8,7 +8,9 @@ module cpu(
     logic [31:0] next_pc; 
 
     always_comb begin
-        if (branch_taken) next_pc = branch_target;
+        if (jump) next_pc = pc + immediate; 
+        else if (jump_reg) next_pc = (read_data_1 + immediate) & 32'hFFFFFFFE; 
+        else if (branch_taken) next_pc = branch_target;
         else next_pc = pc + 32'd4; 
     end
 
@@ -41,7 +43,9 @@ module cpu(
     ); 
 
     always_comb begin
-        if (mem_to_reg)
+        if (jump || jump_reg)
+            write_back_data = pc + 32'd4; 
+        else if (mem_to_reg)
             write_back_data = memory_read_data; 
         else
             write_back_data = alu_result; 
@@ -56,7 +60,9 @@ module cpu(
     logic mem_write; 
     logic mem_to_reg; 
     logic branch; 
-    logic jump; 
+    logic jump;
+    logic jump_reg;  
+    logic aui_pc; 
 
     logic [31:0] branch_target; 
     logic branch_taken; 
@@ -90,7 +96,9 @@ module cpu(
         .mem_write(mem_write), 
         .mem_to_reg(mem_to_reg), 
         .branch(branch), 
-        .jump(jump)
+        .jump(jump),
+        .jump_reg(jump_reg),
+        .aui_pc(aui_pc)
     );
 
     //Register file
@@ -135,10 +143,16 @@ module cpu(
     end
 
     //ALU
+    logic [31:0] alu_input_a; 
     logic [31:0] alu_result; 
 
+    always_comb begin 
+        if (aui_pc) alu_input_a = pc; 
+        else alu_input_a = read_data_1; 
+    end
+
     alu alu_unit(
-        .a(read_data_1), 
+        .a(alu_input_a), 
         .b(alu_input_b), 
         .alu_control(alu_control),
         .result(alu_result)

@@ -9,21 +9,28 @@ module control_unit(
     output logic       mem_write,
     output logic       mem_to_reg, 
     output logic       branch, 
-    output logic       jump
+    output logic       jump,
+    output logic       jump_reg,
+    output logic       aui_pc
 );
 
-localparam logic [3:0] ALU_ADD = 4'b0000;
-localparam logic [3:0] ALU_SUB = 4'b0001;
-localparam logic [3:0] ALU_AND = 4'b0010;
-localparam logic [3:0] ALU_OR  = 4'b0011;
-localparam logic [3:0] ALU_XOR = 4'b0100;
-localparam logic [3:0] ALU_SLT = 4'b0101; 
+localparam logic [3:0] ALU_ADD    = 4'b0000;
+localparam logic [3:0] ALU_SUB    = 4'b0001;
+localparam logic [3:0] ALU_AND    = 4'b0010;
+localparam logic [3:0] ALU_OR     = 4'b0011;
+localparam logic [3:0] ALU_XOR    = 4'b0100;
+localparam logic [3:0] ALU_SLT    = 4'b0101; 
+localparam logic [3:0] ALU_PASS_B = 4'b0110;
 
 localparam logic [6:0] R_TYPE = 7'b0110011;
 localparam logic [6:0] I_TYPE = 7'b0010011;
 localparam logic [6:0] LOAD   = 7'b0000011;
 localparam logic [6:0] STORE  = 7'b0100011;
-localparam logic [6:0] BRANCH = 7'b1100011; 
+localparam logic [6:0] BRANCH = 7'b1100011;
+localparam logic [6:0] JAL    = 7'b1101111;
+localparam logic [6:0] JALR   = 7'b1100111;
+localparam logic [6:0] LUI    = 7'b0110111;
+localparam logic [6:0] AUIPC  = 7'b0010111;
 
 logic [6:0] opcode; 
 logic [2:0] funct3;
@@ -43,6 +50,7 @@ always_comb begin
     mem_to_reg  = 1'b0;
     branch      = 1'b0;
     jump        = 1'b0;
+    jump_reg    = 1'b0; 
 
     case(opcode)
         R_TYPE: begin
@@ -57,9 +65,10 @@ always_comb begin
                     
                 end
 
-                3'b100: alu_control = ALU_XOR;
-                3'b110: alu_control = ALU_OR;
-                3'b111: alu_control = ALU_AND;
+                3'b010: alu_control = ALU_SLT; //SLT
+                3'b100: alu_control = ALU_XOR; //XOR
+                3'b110: alu_control = ALU_OR; //OR
+                3'b111: alu_control = ALU_AND; //AND
 
                 default: begin
                     alu_control = ALU_ADD; 
@@ -70,6 +79,7 @@ always_comb begin
 
         I_TYPE: begin
             case(funct3)
+                3'b010: alu_control = ALU_SLT; //SLTI
                 3'b000: alu_control = ALU_ADD; // ADDI
                 3'b111: alu_control = ALU_AND; // ANDI
                 3'b110: alu_control = ALU_OR;  // ORI
@@ -110,6 +120,31 @@ always_comb begin
             if (funct3 == 3'b100) alu_control = ALU_SLT; //BLT
 
             if (funct3 == 3'b101) alu_control = ALU_SLT; //BGE
+        end
+
+        JAL : begin
+            jump = 1'b1; 
+            reg_write = 1'b1; 
+        end
+
+        JALR: begin
+            if (funct3 == 3'b000) begin
+                jump_reg = 1'b1; 
+                reg_write = 1'b1; 
+            end
+        end
+
+        LUI: begin
+            alu_control = ALU_PASS_B; 
+            alu_src = 1'b1; 
+            reg_write = 1'b1; 
+        end
+
+        AUIPC: begin
+            alu_control = ALU_ADD;
+            alu_src = 1'b1; 
+            reg_write = 1'b1; 
+            aui_pc = 1'b1; 
         end
     endcase
 end

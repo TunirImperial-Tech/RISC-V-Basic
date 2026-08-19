@@ -5,7 +5,9 @@ module imem(
 
     logic [31:0] memory [0:255]; //256 instructions
     
+    integer i;
     initial begin
+        for (i=0; i<256; i=i+1) memory[i] = 32'h00000013;
         $readmemh("sim/prog.hex", memory); 
     end
 
