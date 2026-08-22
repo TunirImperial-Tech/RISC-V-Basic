@@ -1,79 +1,40 @@
-module cpu_tb;
+`timescale 1ns/1ps
 
+module tb_cpu;
     logic clk;
     logic reset;
 
-    //==================================================
-    // CPU
-    //==================================================
-
-    cpu uut (
+    cpu dut (
         .clk(clk),
         .reset(reset)
     );
 
-    //==================================================
-    // Clock
-    //==================================================
-
+    // 10ns clock period
     always #5 clk = ~clk;
 
-    //==================================================
-    // Test
-    //==================================================
+    integer f;
+    integer i;
 
     initial begin
-
-        clk   = 0;
+        clk = 0;
         reset = 1;
 
-        // Reset CPU
-        #10;
-
-        // Start CPU
+        // hold reset for 2 clock edges
+        @(posedge clk);
+        @(posedge clk);
         reset = 0;
 
-        // Allow program.hex to execute
-        #200;
+        // run for 50 instructions' worth of cycles (32 needed, generous margin)
+        repeat (50) @(posedge clk);
 
-        //==================================================
-        // Results
-        //==================================================
+        // dump all 32 registers to a file
+        f = $fopen("sim/register_dump.txt", "w");
+        for (i = 0; i < 32; i = i + 1) begin
+            $fdisplay(f, "x%0d = %08h", i, dut.regfile_unit.registers[i]);
+        end
+        $fclose(f);
 
-        $display("");
-        $display("========================================");
-        $display("          PROGRAM TEST RESULTS          ");
-        $display("========================================");
-
-        $display("");
-        $display("Register values:");
-
-        $display("x1  = %0d", uut.regfile_unit.registers[1]);
-        $display("x2  = %0d", uut.regfile_unit.registers[2]);
-        $display("x3  = %0d", uut.regfile_unit.registers[3]);
-        $display("x4  = %0d", uut.regfile_unit.registers[4]);
-        $display("x5  = %0d", uut.regfile_unit.registers[5]);
-        $display("x6  = %0d", uut.regfile_unit.registers[6]);
-        $display("x7  = %0d", uut.regfile_unit.registers[7]);
-        $display("x8  = %0d", uut.regfile_unit.registers[8]);
-        $display("x9  = %0d", uut.regfile_unit.registers[9]);
-        $display("x10 = %0d", uut.regfile_unit.registers[10]);
-        $display("x11 = %0d", uut.regfile_unit.registers[11]);
-        $display("x12 = %0d", uut.regfile_unit.registers[12]);
-        $display("x13 = %0d", uut.regfile_unit.registers[13]);
-        $display("x14 = %0d", uut.regfile_unit.registers[14]);
-        $display("x15 = %0d", uut.regfile_unit.registers[15]);
-        $display("x16 = %0d", uut.regfile_unit.registers[16]);
-        $display("x17 = %0d", uut.regfile_unit.registers[17]);
-        $display("x18 = %0d", uut.regfile_unit.registers[18]);
-        $display("x19 = %0d", uut.regfile_unit.registers[19]);
-        $display("x20 = %0d", uut.regfile_unit.registers[20]);
-        $display("x21 = %0d", uut.regfile_unit.registers[21]);
-
-        $display("");
-
+        $display("Register dump complete: sim/register_dump.txt");
         $finish;
-
     end
-
 endmodule

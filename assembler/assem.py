@@ -44,6 +44,8 @@ ISA = {
 #Immediates are decimals or hex {0x##}
 #Mnemonics are case sensitive 
 
+import sys
+
 def strip_comment(line):
     comment = line.split('//')
     line = comment[0]
@@ -69,7 +71,6 @@ def pass_1(source_lines):
         address += 4
 
     return symbol_table, cleaned
-
 
 def parse_reg(s): #Used to validate registers
     try:
@@ -126,22 +127,22 @@ def parse_s(operands, symbol_table):
 
     return {"rd": None, "rs1": rs1, "rs2": rs2, "imm": imm}
 
-def parse_b(operands, symbol_table):
+def parse_b(operands, symbol_table, current_addr):
     if len(operands) != 3:
         raise ValueError('Invalid number of registers')
 
     rs1 = parse_reg(operands[0])
     rs2 = parse_reg(operands[1])
-    imm = parse_imm(operands[2], symbol_table)
+    imm = parse_imm(operands[2], symbol_table) - current_addr
 
     return {"rd": None, "rs1": rs1, "rs2": rs2, "imm": imm}
 
-def parse_j(operands, symbol_table):
+def parse_j(operands, symbol_table, current_addr):
     if len(operands) != 2:
         raise ValueError('Invalid number of registers')
 
     rd = parse_reg(operands[0])
-    imm = parse_imm(operands[1], symbol_table)
+    imm = parse_imm(operands[1], symbol_table) - current_addr
 
     return {"rd": rd, "rs1": None, "rs2": None, "imm": imm}
 
@@ -163,13 +164,17 @@ PASSERS = {
     "J": parse_j
 }
 
-def parse_instruction(mnemonic, operands, symbol_table):
+def parse_instruction(mnemonic, operands, symbol_table, current_addr):
     if mnemonic not in ISA:
         raise ValueError(f"Unknown instruction: {mnemonic}")
 
     fmt = ISA[mnemonic]['fmt']
-    parser = PASSERS[fmt]
-    fields = parser(operands, symbol_table)
+    if fmt in ('B', 'J'):
+            parser = PASSERS[fmt]
+            fields = parser(operands, symbol_table, current_addr)
+    else:
+        parser = PASSERS[fmt]
+        fields = parser(operands, symbol_table)
 
     return {**ISA[mnemonic], **fields, "mnemonic": mnemonic}
 
@@ -242,24 +247,35 @@ ENCODERS = {
 def encode_instructions(fields):
     return ENCODERS[fields['fmt']](fields)
 
-if __name__ == "__main__":
-    test_program = [
-        "loop:",
-        "    ADDI x1, x1, 1",
-        "    ADDI x2, x0, 10",
-        "    BNE x1, x2, loop",
-        "    JAL x0, end",
-        "end:",
-        "    ADD x0, x0, x0",
-    ]
-    test_program_2 = [
-        "    ADDI x1, x1, 1",
-        "loop: ADDI x2, x0, 10",   # inline label
-        "    BNE x1, x2, loop",
-    ]
-    symtab, cleaned = pass_1(test_program)
+
+def write_hex_file(words, filepath):
+    with open(filepath, 'w') as f:
+        for word in words:
+            hex_line = f'{word:08x}'
+            f.write(hex_line + '\n')
+
+def assemble(source_path, output_path):
+    with open(source_path, 'r') as f:
+        source_lines = f.readlines()
+
+    symbol_table, cleaned = pass_1(source_lines)
+    encoded_word = []
+
     for addr, text in cleaned:
-        mnemonic, rest = text.split(" ", 1)
-        operands = [op.strip() for op in rest.split(",")]
-        parsed = parse_instruction(mnemonic, operands, symtab)
-        #print(addr, parsed)
+        mnemonic, rest = text.split(' ', 1)
+        operands = [op.strip() for op in rest.split(',')]
+        fields = parse_instruction(mnemonic, operands, symbol_table, addr)
+        word = encode_instructions(fields)
+        encoded_word.append(word)
+
+    write_hex_file(encoded_word, output_path)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python assembler.py <input.asm> <output.hex>")
+        sys.exit(1)
+
+    input_path = sys.argv[1]
+    output_path = sys.argv[2]
+    assemble(input_path, output_path)
+    print(f"Assembled {input_path} -> {output_path}")

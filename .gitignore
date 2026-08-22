@@ -1,3 +1,4 @@
 test_results/*.vvp
 test_results/*.vcd
 src/encoder.svh
+assembler/test_prog.hex
