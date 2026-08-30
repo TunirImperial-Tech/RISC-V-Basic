@@ -30,7 +30,7 @@ module tb_cpu;
         // dump all 32 registers to a file
         f = $fopen("sim/register_dump.txt", "w");
         for (i = 0; i < 32; i = i + 1) begin
-            $fdisplay(f, "x%0d = %08h", i, dut.regfile_unit.registers[i]);
+            $fdisplay(f, "x%0d = %0d", i, dut.regfile_unit.registers[i]);
         end
         $fclose(f);
 

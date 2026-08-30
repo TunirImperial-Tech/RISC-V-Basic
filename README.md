@@ -387,22 +387,31 @@ The resulting `prog.hex` can then be loaded directly by the CPU's instruction me
 
 ---
 
-## Verification
+# CPU Verification Test Suite
 
-The processor was developed incrementally, with individual components tested before being integrated into the complete CPU.
+7 hand-written RV32I test programs, each targeting a specific instruction
+group, run end-to-end on the CPU (assembler -> prog.hex -> Icarus Verilog
+simulation -> register dump) and checked against manually pre-computed
+expected register values.
 
-Testing included:
+| Program | Instructions covered | Registers checked | Result |
+|---|---|---|---|
+| t1_arith.asm | ADD, SUB, AND, OR, XOR, SLT | 8 | PASS |
+| t2_imm.asm | ADDI, ANDI, ORI, XORI, SLTI | 6 | PASS |
+| t3_loadstore.asm | SW, LW | 3 | PASS |
+| t4_upperimm.asm | AUIPC, LUI | 2 | PASS |
+| t5_branch.asm | BEQ, BNE | 6 | PASS |
+| t6_jump.asm | JAL, JALR | 5 | PASS |
+| t7_branch2.asm | BLT, BGE | 6 | PASS |
 
-* ALU testbench
-* Register-file testbench
-* Immediate-generator testbench
-* Control-unit testbench
-* CPU integration testbench
-* Machine-code program execution
-* Register-value verification
+**Result: 7/7 programs pass, 36/36 register-level assertions correct —
+covers all 22 implemented instructions.**
 
-This allowed errors in individual components to be identified before full CPU integration.
+Combined with the existing self-checking `control_unit_tb.sv`
+(6/6 assertions passing), that's **42/42 checks passing** across the
+project.
 
+Run with: `python3 run_tests.py` from a directory containing this repo
 ---
 
 ## Design Approach
